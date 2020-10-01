@@ -23,6 +23,7 @@ ld sweepY = 0;
 int pointID = 0;
 vector<Line> diagonals;
 vector<pair<PolygonPoint*, PolygonPoint*> > diagonalPoints;
+vector<PolygonPoint*> leftCurrPoint, rightCurrPoint;
 
 void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
 {
@@ -32,16 +33,9 @@ void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
 
 void addDiagonal(PolygonPoint *point1, PolygonPoint *point2, vector<PolygonPoint*> &allPoints)
 {
-  // t(point1.getPair(), point1.getPrevPoint().getPair(), point1.getNextPoint().getPair());
-  // t(point2.getPair(), point2.getPrevPoint().getPair(), point2.getNextPoint().getPair());
-  // cerr << endl;
 
   PolygonPoint *copy1 = new PolygonPoint(*point1);
   PolygonPoint *copy2 = new PolygonPoint(*point2);
-  // t(copy1.getPair(), copy1.getPrevPoint().getPair(), copy1.getNextPoint().getPair());
-  // t(copy2.getPair(), copy2.getPrevPoint().getPair(), copy2.getNextPoint().getPair());
-  // cerr << endl;
-
 
   copy1->setPrevPointer(copy2);
   copy1->setNextPointer(point1->getNextPointer());
@@ -51,32 +45,14 @@ void addDiagonal(PolygonPoint *point1, PolygonPoint *point2, vector<PolygonPoint
 
   point1->setNextPointer(point2);
   point2->setPrevPointer(point1);
-  // point1.setPrevPointer(&point2);
-  // point2.setNextPointer(&point1);
 
   copy1->getNextPointer()->setPrevPointer(copy1);
   copy2->getPrevPointer()->setNextPointer(copy2);
-  // point1.getPrevPoint().setNextPointer(&point1);
-  // point2.getPrevPoint().setNextPointer(&point2);
-  // copy2.getPrevPoint().setNextPointer(&copy2);
-
-  // point1.getNextPoint().setPrevPointer(&point1);
-  // point2.getNextPoint().setPrevPointer(&point2);
-  // copy1.getNextPoint().setPrevPointer(&copy1);
 
   copy1->setID(pointID++);
   copy2->setID(pointID++);
   allPoints.pu(copy1);
   allPoints.pu(copy2);
-
-  // t(copy1.getPair(), copy1.getPrevPoint().getPair(), copy1.getNextPoint().getPair());
-  // t(copy2.getPair(), copy2.getPrevPoint().getPair(), copy2.getNextPoint().getPair());
-  // cerr << endl;
-
-  // t(point1.getPair(), point1.getPrevPoint().getPair(), point1.getNextPoint().getPair());
-  // t(point2.getPair(), point2.getPrevPoint().getPair(), point2.getNextPoint().getPair());
-  // cerr << endl;
-  // cerr << endl;
 }
 
 struct pointComp
