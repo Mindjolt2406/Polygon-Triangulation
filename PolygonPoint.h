@@ -6,7 +6,6 @@ using namespace std;
 
 typedef struct PolygonPoint
 {
-  int id = -1;
   ld x,y;
   // Line nextLine;
   // Line prevLine;
@@ -18,12 +17,12 @@ typedef struct PolygonPoint
   PolygonPoint()
   {
     Point p(0,0);
-    x = 0, y = 0, id = 0;
+    x = 0, y = 0;
     point = p;
   }
 
-  PolygonPoint(ld x, ld y, int id) : x(x), y(y), point(x,y), id(id){}
-  PolygonPoint(const PolygonPoint &p): nextPoint(p.nextPoint), prevPoint(p.prevPoint), isMerge(p.isMerge), isSplit(p.isSplit), isEnd(p.isEnd), isStart(p.isStart), isRegular(p.isRegular), leftEdge(p.leftEdge), x(p.x), y(p.y), point(p.x,p.y), id(p.id){}
+  PolygonPoint(ld x, ld y) : x(x), y(y), point(x,y){}
+  PolygonPoint(const PolygonPoint &p): nextPoint(p.nextPoint), prevPoint(p.prevPoint), isMerge(p.isMerge), isSplit(p.isSplit), isEnd(p.isEnd), isStart(p.isStart), isRegular(p.isRegular), leftEdge(p.leftEdge), x(p.x), y(p.y), point(p.x,p.y){}
 
   // void equate(PolygonPoint &point)
   // {
@@ -66,9 +65,6 @@ typedef struct PolygonPoint
   {
     return Line(this->getPoint(), getNextPoint().getPoint());
   }
-
-  void setID(int id) {this->id = id;}
-  int getID() {return id;}
 
   void setType()
   {
@@ -161,7 +157,7 @@ typedef struct PolygonPoint
   std::string to_string()
   {
     std::string s;
-    s += point.to_string() + " Next: " + nextPoint->getPoint().to_string() + " Prev: " + prevPoint->getPoint().to_string() + " Status: " + getStatus() + " Id: " + std::to_string(getID()) + ((std::to_string(getID()).size()-1) ? "" : " ");
+    s += point.to_string() + " Next: " + nextPoint->getPoint().to_string() + " Prev: " + prevPoint->getPoint().to_string() + " Status: " + getStatus();
     return s;
   }
 

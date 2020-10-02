@@ -23,7 +23,6 @@ template <typename T> ostream& operator<<(ostream& os, const vector<int>& v) { o
 
 
 ld sweepY = 0;
-int pointID = 0;
 vector<pair<PolygonPoint*, PolygonPoint*> > diagonalPoints;
 
 void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
@@ -43,7 +42,7 @@ struct pointComp
 void generateInverseHelper(vector<PolygonPoint*> &points, map<PolygonPoint,Line> &inverseHelper)
 {
   set<Line> setLines;
-  
+
   for(auto pointer : points)
   {
     PolygonPoint point = *pointer;
@@ -120,7 +119,7 @@ int main()
     ld x,y;
     cin >> x >> y;
 
-    PolygonPoint *p = new PolygonPoint(x,y,pointID++);
+    PolygonPoint *p = new PolygonPoint(x,y);
     points.push_back(p);
   }
 
@@ -202,16 +201,12 @@ int main()
       if(point.isRegularFacingLeft())
       {
         Line leftLine = inverseHelper[point];
-        _;
-        t(leftLine.getPair());
         if(helper[leftLine.getPair()]->isMergePoint())
         {
           // Draw a diagonal between helper[leftLine.getPair()] and point
           drawDiagonal(helper[leftLine.getPair()], pointer);
         }
-        _;
         helper[leftLine.getPair()] = pointer;
-        _;
       }
       else
       {
