@@ -35,84 +35,6 @@ void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
   diagonalPoints.pu(mp(point1, point2));
 }
 
-// void addDiagonal(PolygonPoint *origPoint1, PolygonPoint *origPoint2, vector<PolygonPoint*> &allPoints)
-// {
-//   bool isLeft1 = false, isLeft2 = false;
-//   if(origPoint1->getX() < origPoint2->getX()) isLeft1 = false;
-//   else isLeft1 = true;
-
-//   isLeft2 = isLeft1;
-  
-//   t(isLeft1, isLeft2,origPoint1->getPair(), origPoint2->getPair());
-//   PolygonPoint *point1 = (isLeft1) ? leftCurrPoint[origPoint1->getID()] : rightCurrPoint[origPoint1->getID()];
-//   PolygonPoint *point2 = (isLeft2) ? leftCurrPoint[origPoint2->getID()] : rightCurrPoint[origPoint2->getID()];
-
-//   PolygonPoint *copy1 = new PolygonPoint(*point1);
-//   PolygonPoint *copy2 = new PolygonPoint(*point2);
-
-//   copy1->setPrevPointer(copy2);
-//   copy1->setNextPointer(point1->getNextPointer());
-
-//   copy2->setNextPointer(copy1);
-//   copy2->setPrevPointer(point2->getPrevPointer());
-
-//   point1->setNextPointer(point2);
-//   point2->setPrevPointer(point1);
-
-//   copy1->getNextPointer()->setPrevPointer(copy1);
-//   copy2->getPrevPointer()->setNextPointer(copy2);
-
-//   copy1->setID(pointID++);
-//   copy2->setID(pointID++);
-//   allPoints.pu(copy1);
-//   allPoints.pu(copy2);
-
-//   int id1 = origPoint1->getID(), id2 = origPoint2->getID();
-
-//   if(isLeft1) 
-//   {
-//     leftCurrPoint[id1] = copy1;
-//     if(!changedPointer[id1])
-//     {
-//       rightCurrPoint[id1] = point1;
-//       changedPointer[id1] = true;
-//     }
-//   }
-//   else 
-//   {
-//     rightCurrPoint[id1] = copy1;
-//     if(!changedPointer[id1])
-//     {
-//       leftCurrPoint[id1] = point1;
-//       changedPointer[id1] = true;
-//     }
-//   }
-//   // }
-//   t(leftCurrPoint[id1]->getPair(), leftCurrPoint[id1]->getNextPointer()->getPair(), leftCurrPoint[id1]->getNextPointer()->getNextPointer()->getPair(),leftCurrPoint[id1]->getNextPointer()->getNextPointer()->getNextPointer()->getPair());
-//   cerr << endl;
-//   t(rightCurrPoint[id1]->getPair(), rightCurrPoint[id1]->getNextPointer()->getPair(), rightCurrPoint[id1]->getNextPointer()->getNextPointer()->getPair());
-//   cerr << endl << endl;
-
-//   if(isLeft2) 
-//   {
-//     leftCurrPoint[origPoint2->getID()] = copy2;
-//     if(!changedPointer[id2])
-//     {
-//       rightCurrPoint[id2] = point2;
-//       changedPointer[id2] = true;
-//     }
-//   }
-//   else 
-//   {
-//     rightCurrPoint[origPoint2->getID()] = copy2;
-//     if(!changedPointer[id2])
-//     {
-//       leftCurrPoint[id2] = point2;
-//       changedPointer[id2] = true;
-//     }
-//   }
-// }
-
 struct pointComp
 {
   bool operator()(const PolygonPoint * point1, const PolygonPoint* point2)
@@ -137,7 +59,7 @@ int main()
   __;
   int numPoints;
   cin >> numPoints;
-  vector<PolygonPoint*> points, allPoints;
+  vector<PolygonPoint*> points;
 
   map<int, int> freqY;
 
@@ -145,9 +67,6 @@ int main()
   {
     ld x,y;
     cin >> x >> y;
-
-    // freqY[y]++;
-    // if(freqY[y] > 1) y += EPS*(freqY[y]-1);
 
     PolygonPoint *p = new PolygonPoint(x,y,pointID++);
     leftCurrPoint.pu(p);
@@ -166,12 +85,8 @@ int main()
   for(int i=0;i<numPoints;i++)
   {
     points[i]->setType();
-    allPoints.pu(points[i]);
-    // PolygonPoint point = points[i];
-    // cout << point.to_string() << endl;
   }
 
-  // cout << endl << endl;
 
   sort(points.begin(),points.end(),[](PolygonPoint* a, PolygonPoint* b) { return *a < *b; });
   reverse(points.begin(), points.end());
@@ -235,13 +150,13 @@ int main()
     }
   }
 
-  // printInverseHelper(inverseHelper);
+  printInverseHelper(inverseHelper);
 
   map<pair<pair<ld,ld>, pair<ld,ld> > , PolygonPoint*> helper;
   for(auto pointer : points)
   {
     PolygonPoint point = *pointer;
-    // cerr << "Processing point: " << point.to_string() << endl;
+    cerr << "Processing point: " << point.to_string() << endl;
     // Updating the sweep line
     sweepY = point.getY();
 
@@ -254,6 +169,7 @@ int main()
     else if(point.isEndPoint())
     {
       Line prevLine = point.getPrevLine();
+      t(helper.count(prevLine.getPair()));
       if(helper[prevLine.getPair()]->isMergePoint())
       {
         // Draw Diagonal from point to helper[prevLine.getPair()]
@@ -292,13 +208,17 @@ int main()
     {
       if(point.isRegularFacingLeft())
       {
-        Line leftLine = point.getLeftEdge();
+        Line leftLine = inverseHelper[point];
+        _;
+        t(leftLine.getPair());
         if(helper[leftLine.getPair()]->isMergePoint())
         {
           // Draw a diagonal between helper[leftLine.getPair()] and point
           drawDiagonal(helper[leftLine.getPair()], pointer);
         }
+        _;
         helper[leftLine.getPair()] = pointer;
+        _;
       }
       else
       {
@@ -319,7 +239,7 @@ int main()
     // cout << "SweepY: " << sweepY << " setLines.size(): " << setLines.size() << endl;
     // for(auto it : helper)
     // {
-    //   cout << it.fi << " " << it.second.getPair() << endl;
+    //   cout << it.fi << " " << (it.second)->getPair() << endl;
     // }
   }
 
