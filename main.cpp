@@ -24,10 +24,7 @@ template <typename T> ostream& operator<<(ostream& os, const vector<int>& v) { o
 
 ld sweepY = 0;
 int pointID = 0;
-vector<Line> diagonals;
 vector<pair<PolygonPoint*, PolygonPoint*> > diagonalPoints;
-vector<PolygonPoint*> leftCurrPoint, rightCurrPoint;
-vector<bool> changedPointer;
 
 void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
 {
@@ -43,57 +40,10 @@ struct pointComp
   }
 };
 
-void printInverseHelper(map<PolygonPoint, Line> &inverseHelper)
+void generateInverseHelper(vector<PolygonPoint*> &points, map<PolygonPoint,Line> &inverseHelper)
 {
-  // Prints inverseHelper
-  for(auto it : inverseHelper)
-  {
-    PolygonPoint point = it.first;
-    Line line = it.second;
-    cerr << point.getPoint().to_string() << " " << line.to_string() << endl;
-  }
-}
-
-int main()
-{
-  __;
-  int numPoints;
-  cin >> numPoints;
-  vector<PolygonPoint*> points;
-
-  map<int, int> freqY;
-
-  for(int i=0;i<numPoints;i++)
-  {
-    ld x,y;
-    cin >> x >> y;
-
-    PolygonPoint *p = new PolygonPoint(x,y,pointID++);
-    leftCurrPoint.pu(p);
-    rightCurrPoint.pu(p);
-    points.push_back(p);
-  }
-
-  changedPointer.resize(numPoints);
-
-  for(int i=0;i<numPoints;i++)
-  {
-    points[i]->setNextPointer(points[(i+1) % numPoints]);
-    points[i]->setPrevPointer(points[(i-1+numPoints)%numPoints]);
-  }
-
-  for(int i=0;i<numPoints;i++)
-  {
-    points[i]->setType();
-  }
-
-
-  sort(points.begin(),points.end(),[](PolygonPoint* a, PolygonPoint* b) { return *a < *b; });
-  reverse(points.begin(), points.end());
-
   set<Line> setLines;
-  map<PolygonPoint, Line> inverseHelper;
-
+  
   for(auto pointer : points)
   {
     PolygonPoint point = *pointer;
@@ -106,30 +56,26 @@ int main()
     // Updating the sweep line 
     sweepY = point.getY();
 
-    // cout << "Processing point: " << point.to_string() << endl;
-
-    if(point.getStatus() == "Start  ")
+    if(point.isStartPoint())
     {
       Line tempLine = point.getNextLine();
       setLines.insert(tempLine);
       inverseHelper[point] = point.getNextLine();
       point.setLeftEdge(point.getNextLine());
     }
-    else if(point.getStatus() == "End    ")
+    else if(point.isEndPoint())
     {
-      // t(point.to_string(), (point.getPrevPoint()).to_string());
-
       setLines.erase(point.getPrevLine());
       // No point, but for sake of completion
       inverseHelper[point] = point.getPrevLine();
       point.setLeftEdge(point.getPrevLine());
     }
-    else if(point.getStatus() == "Split  ")
+    else if(point.isSplitPoint())
     {
       point.updateLeftEdge(setLines, inverseHelper);
       setLines.insert(point.getNextLine());
     }
-    else if(point.getStatus() == "Merge  ")
+    else if(point.isMergePoint())
     {
       setLines.erase(point.getPrevLine());
       point.updateLeftEdge(setLines, inverseHelper);
@@ -149,8 +95,55 @@ int main()
       }
     }
   }
+}
 
-  printInverseHelper(inverseHelper);
+void printInverseHelper(map<PolygonPoint, Line> &inverseHelper)
+{
+  // Prints inverseHelper
+  for(auto it : inverseHelper)
+  {
+    PolygonPoint point = it.first;
+    Line line = it.second;
+    cerr << point.getPoint().to_string() << " " << line.to_string() << endl;
+  }
+}
+
+int main()
+{
+  __;
+  int numPoints;
+  cin >> numPoints;
+  vector<PolygonPoint*> points;
+
+  for(int i=0;i<numPoints;i++)
+  {
+    ld x,y;
+    cin >> x >> y;
+
+    PolygonPoint *p = new PolygonPoint(x,y,pointID++);
+    points.push_back(p);
+  }
+
+  for(int i=0;i<numPoints;i++)
+  {
+    points[i]->setNextPointer(points[(i+1) % numPoints]);
+    points[i]->setPrevPointer(points[(i-1+numPoints)%numPoints]);
+  }
+
+  for(int i=0;i<numPoints;i++)
+  {
+    points[i]->setType();
+  }
+
+
+  sort(points.begin(),points.end(),[](PolygonPoint* a, PolygonPoint* b) { return *a < *b; });
+  reverse(points.begin(), points.end());
+
+  set<Line> setLines;
+  map<PolygonPoint, Line> inverseHelper;
+
+  generateInverseHelper(points,inverseHelper);
+  // printInverseHelper(inverseHelper);
 
   map<pair<pair<ld,ld>, pair<ld,ld> > , PolygonPoint*> helper;
   for(auto pointer : points)
