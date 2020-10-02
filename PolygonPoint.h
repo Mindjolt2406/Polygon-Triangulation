@@ -1,4 +1,7 @@
+#ifndef POLYGONPOINT
+#define POLYGONPOINT
 #include "line.h"
+#endif
 using namespace std;
 
 typedef struct PolygonPoint

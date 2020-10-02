@@ -1,5 +1,9 @@
+#ifndef MAIN
+#define MAIN
 #include<bits/stdc++.h>
-#include "PolygonPoint.h"
+// #include "PolygonPoint.h"
+#include "dcel.h"
+#endif
 // g++ -std=c++17 -Wl,-stack_size -Wl,0x10000000 main.cpp
 #define mt make_tuple
 #define pu push_back
@@ -14,7 +18,6 @@
 #define __ {ios::sync_with_stdio(false);cin.tie(NULL);cout.tie(NULL);}
 
 using namespace std;
-template<class A, class B> ostream& operator<<(ostream& out, const pair<A, B> &a){ return out<<"("<<a.first<<", "<<a.second<<")";}
 template <int> ostream& operator<<(ostream& os, const vector<int>& v) { os << "["; for (int i = 0; i < v.size(); ++i) { if(v[i]!=INF) os << v[i]; else os << "INF";if (i != v.size() - 1) os << ", "; } os << "]\n"; return os; } 
 template <typename T> ostream& operator<<(ostream& os, const vector<int>& v) { os << "["; for (int i = 0; i < v.size(); ++i) { os << v[i]; ;if (i != v.size() - 1) os << ", "; } os << "]\n"; return os; } 
 
@@ -24,6 +27,7 @@ int pointID = 0;
 vector<Line> diagonals;
 vector<pair<PolygonPoint*, PolygonPoint*> > diagonalPoints;
 vector<PolygonPoint*> leftCurrPoint, rightCurrPoint;
+vector<bool> changedPointer;
 
 void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
 {
@@ -31,29 +35,83 @@ void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
   diagonalPoints.pu(mp(point1, point2));
 }
 
-void addDiagonal(PolygonPoint *point1, PolygonPoint *point2, vector<PolygonPoint*> &allPoints)
-{
+// void addDiagonal(PolygonPoint *origPoint1, PolygonPoint *origPoint2, vector<PolygonPoint*> &allPoints)
+// {
+//   bool isLeft1 = false, isLeft2 = false;
+//   if(origPoint1->getX() < origPoint2->getX()) isLeft1 = false;
+//   else isLeft1 = true;
 
-  PolygonPoint *copy1 = new PolygonPoint(*point1);
-  PolygonPoint *copy2 = new PolygonPoint(*point2);
+//   isLeft2 = isLeft1;
+  
+//   t(isLeft1, isLeft2,origPoint1->getPair(), origPoint2->getPair());
+//   PolygonPoint *point1 = (isLeft1) ? leftCurrPoint[origPoint1->getID()] : rightCurrPoint[origPoint1->getID()];
+//   PolygonPoint *point2 = (isLeft2) ? leftCurrPoint[origPoint2->getID()] : rightCurrPoint[origPoint2->getID()];
 
-  copy1->setPrevPointer(copy2);
-  copy1->setNextPointer(point1->getNextPointer());
+//   PolygonPoint *copy1 = new PolygonPoint(*point1);
+//   PolygonPoint *copy2 = new PolygonPoint(*point2);
 
-  copy2->setNextPointer(copy1);
-  copy2->setPrevPointer(point2->getPrevPointer());
+//   copy1->setPrevPointer(copy2);
+//   copy1->setNextPointer(point1->getNextPointer());
 
-  point1->setNextPointer(point2);
-  point2->setPrevPointer(point1);
+//   copy2->setNextPointer(copy1);
+//   copy2->setPrevPointer(point2->getPrevPointer());
 
-  copy1->getNextPointer()->setPrevPointer(copy1);
-  copy2->getPrevPointer()->setNextPointer(copy2);
+//   point1->setNextPointer(point2);
+//   point2->setPrevPointer(point1);
 
-  copy1->setID(pointID++);
-  copy2->setID(pointID++);
-  allPoints.pu(copy1);
-  allPoints.pu(copy2);
-}
+//   copy1->getNextPointer()->setPrevPointer(copy1);
+//   copy2->getPrevPointer()->setNextPointer(copy2);
+
+//   copy1->setID(pointID++);
+//   copy2->setID(pointID++);
+//   allPoints.pu(copy1);
+//   allPoints.pu(copy2);
+
+//   int id1 = origPoint1->getID(), id2 = origPoint2->getID();
+
+//   if(isLeft1) 
+//   {
+//     leftCurrPoint[id1] = copy1;
+//     if(!changedPointer[id1])
+//     {
+//       rightCurrPoint[id1] = point1;
+//       changedPointer[id1] = true;
+//     }
+//   }
+//   else 
+//   {
+//     rightCurrPoint[id1] = copy1;
+//     if(!changedPointer[id1])
+//     {
+//       leftCurrPoint[id1] = point1;
+//       changedPointer[id1] = true;
+//     }
+//   }
+//   // }
+//   t(leftCurrPoint[id1]->getPair(), leftCurrPoint[id1]->getNextPointer()->getPair(), leftCurrPoint[id1]->getNextPointer()->getNextPointer()->getPair(),leftCurrPoint[id1]->getNextPointer()->getNextPointer()->getNextPointer()->getPair());
+//   cerr << endl;
+//   t(rightCurrPoint[id1]->getPair(), rightCurrPoint[id1]->getNextPointer()->getPair(), rightCurrPoint[id1]->getNextPointer()->getNextPointer()->getPair());
+//   cerr << endl << endl;
+
+//   if(isLeft2) 
+//   {
+//     leftCurrPoint[origPoint2->getID()] = copy2;
+//     if(!changedPointer[id2])
+//     {
+//       rightCurrPoint[id2] = point2;
+//       changedPointer[id2] = true;
+//     }
+//   }
+//   else 
+//   {
+//     rightCurrPoint[origPoint2->getID()] = copy2;
+//     if(!changedPointer[id2])
+//     {
+//       leftCurrPoint[id2] = point2;
+//       changedPointer[id2] = true;
+//     }
+//   }
+// }
 
 struct pointComp
 {
@@ -73,6 +131,7 @@ void printInverseHelper(map<PolygonPoint, Line> &inverseHelper)
     cerr << point.getPoint().to_string() << " " << line.to_string() << endl;
   }
 }
+
 int main()
 {
   __;
@@ -91,8 +150,12 @@ int main()
     // if(freqY[y] > 1) y += EPS*(freqY[y]-1);
 
     PolygonPoint *p = new PolygonPoint(x,y,pointID++);
+    leftCurrPoint.pu(p);
+    rightCurrPoint.pu(p);
     points.push_back(p);
   }
+
+  changedPointer.resize(numPoints);
 
   for(int i=0;i<numPoints;i++)
   {
@@ -273,66 +336,25 @@ int main()
   //   t(line, point.getPair());
   // }
 
-  vector<Line> sides;
+  vector<Line> sides,allLines;
   for(int i=0;i<numPoints;i++) sides.push_back(points[i]->getNextLine());
 
   cout << diagonalPoints.size() + numPoints << endl;
   for(auto line : sides)
   {
+    allLines.pu(line);
     auto pair = line.getPair();
     cout << pair.fi.fi << " " << pair.fi.se << " " << pair.se.fi << " " << pair.se.se << endl;
   }
 
   for(auto line : diagonalPoints)
   {
+    allLines.pu(Line((line.fi)->getPoint(),(line.se)->getPoint() ));
     auto pair1 = (line.fi)->getPair(), pair2 = (line.se)->getPair();
     cout << pair1.fi << " " << pair1.se << " " << pair2.fi << " " << pair2.se << endl;
   }
 
-
-  t(allPoints.size());
-  for(auto pair : diagonalPoints)
-  {
-    PolygonPoint *point1 = pair.fi, *point2 = pair.se;
-    addDiagonal(point1, point2, allPoints);
-  }
-
-  t(allPoints.size());
-
-  for(auto pointer : allPoints)
-  {
-    cerr << pointer->getPair() << endl;
-  }
-
-  // for(auto pointer : allPoints) t(pointer->getID());
-  // _;
-  // After monotone partiotining
-  vector<Line> finalShape;
-  vector<bool> visited(allPoints.size());
-  for(int i=0;i<allPoints.size();i++)
-  {
-    if(!visited[i])
-    {
-      PolygonPoint* origPointer = allPoints[i];
-      PolygonPoint* pointer = origPointer;
-      t(i, pointer->getPair());
-      while(!visited[pointer->getID()])
-      {
-        finalShape.push_back(pointer->getNextLine());
-        visited[pointer->getID()] = true;
-        pointer = pointer->getNextPointer();
-        if(pointer->getNextPointer() == NULL) t("true");
-        t(pointer->getPair());
-      }
-    }
-  }
-
-  // cout << endl;
-  // cout << "Final monotone partitioned polygon" << endl;
-  // for(auto line : finalShape)
-  // {
-  //   cout << line.to_string() << endl;
-  // }
-
+  vector<vector<Point> > polygons;
+  assignLinesToPolygons(allLines,polygons);
   return 0;
 }

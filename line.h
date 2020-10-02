@@ -1,4 +1,8 @@
+#ifndef LINE
+#define LINE
 #include "point.h"
+#endif
+
 #define ld long double
 #define mp std::make_pair
 #define INF 1e9
