@@ -4,6 +4,7 @@
 // #include "PolygonPoint.h"
 #include "dcel.h"
 #endif
+
 // g++ -std=c++17 -Wl,-stack_size -Wl,0x10000000 main.cpp
 #define mt make_tuple
 #define pu push_back
@@ -23,6 +24,7 @@ template <typename T> ostream& operator<<(ostream& os, const vector<int>& v) { o
 
 
 ld sweepY = 0;
+bool enableRotation = true;
 vector<pair<PolygonPoint*, PolygonPoint*> > diagonalPoints;
 
 void drawDiagonal(PolygonPoint *point1, PolygonPoint *point2)
@@ -103,7 +105,125 @@ void printInverseHelper(map<PolygonPoint, Line> &inverseHelper)
   {
     PolygonPoint point = it.first;
     Line line = it.second;
+    point.rotate(-defaultAngle);
+    line.deRotate();
     cerr << point.getPoint().to_string() << " " << line.to_string() << endl;
+    point.rotate(defaultAngle);
+    // line.rotate();
+  }
+}
+
+void triangulateMonotonePolygon(vector<PolygonPoint*> &polygon, vector<Line> &monotoneDiagonals)
+{
+  // Sort w.r.t decreasing y coordinate
+  sort(polygon.begin(), polygon.end(), [](PolygonPoint* point1, PolygonPoint* point2)
+  {
+    return point1->getY() < point2->getY();
+  });
+  reverse(polygon.begin(),polygon.end());
+
+  stack<PolygonPoint*> pointStack;
+
+  set<pair<ld,ld> > leftChain;
+
+  PolygonPoint* tempPoint = polygon[0];
+  PolygonPoint* currPoint = tempPoint;
+
+  while(*tempPoint != *polygon.back())
+  {
+    leftChain.insert(tempPoint->getPair());
+    tempPoint = tempPoint->getNextPointer();
+  }
+
+  _;
+  Vertex* vertex = new Vertex(currPoint->getPoint());
+  bool chainIsLeft = vertex->lessPoint(currPoint->getNextPointer()->getPoint(), currPoint->getPrevPointer()->getPoint());
+  chainIsLeft = !chainIsLeft;
+   
+  pointStack.push(polygon[0]);
+  pointStack.push(polygon[1]);
+
+  for(int i=2;i<(int)polygon.size()-1;i++)
+  {
+    PolygonPoint* currPointer = polygon[i];
+    
+
+    // Different chains
+    if(leftChain.count(currPointer->getPair()) ^ leftChain.count(pointStack.top()->getPair()))
+    {
+      if(i == 2) t(currPointer->getPair());
+      while(pointStack.size() > 1)  
+      {
+        PolygonPoint* stackTop = pointStack.top();
+        Line tempDiagonal(stackTop->getPoint(),currPointer->getPoint());
+        monotoneDiagonals.pu(tempDiagonal);
+        pointStack.pop();
+      }
+      pointStack.pop();
+      pointStack.push(polygon[i-1]);
+      pointStack.push(currPointer);
+    }
+    else // Same chain
+    {
+      pair<ld,ld> tempPair = mp(690,250);
+      bool isLeft = true;
+      if(chainIsLeft ^ leftChain.count(currPointer->getPair())) isLeft = false;
+
+      PolygonPoint* tempMiddlePointer = pointStack.top();
+      pointStack.pop();
+      while(!pointStack.empty())
+      {
+        PolygonPoint* tempAbovePointer = pointStack.top();
+        // Some checking
+        Line tempDiagonal(currPointer->getPoint(), tempAbovePointer->getPoint());
+        if(isLeft)
+        {
+          if(tempDiagonal.on_left(tempMiddlePointer->getPoint()))
+          {
+            // Add Diagonal
+            monotoneDiagonals.pu(tempDiagonal);
+          }
+          else break;
+        }
+        else
+        {
+          if(tempDiagonal.on_right(tempMiddlePointer->getPoint()))
+          {
+            // Add Diagonal
+            monotoneDiagonals.pu(tempDiagonal);
+          }
+          else break;
+        }
+
+        tempMiddlePointer = tempAbovePointer;
+        pointStack.pop();
+      }
+      pointStack.push(tempMiddlePointer);
+      pointStack.push(currPointer);
+    }
+  }
+
+  pointStack.pop();
+  while(pointStack.size() > 1)
+  {
+    PolygonPoint* stackTop = pointStack.top();
+    Line tempDiagonal(stackTop->getPoint(),(polygon.back())->getPoint());
+    monotoneDiagonals.pu(tempDiagonal);
+    pointStack.pop();
+  }
+  pointStack.pop();
+}
+
+void triangulateMonotonePolygons(vector<vector<PolygonPoint*> > &polygons, vector<vector<Line> > &diagonals, int numPoints)
+{
+  bool fullPolygon = false;
+  for(auto monotonePolygon : polygons)
+  {
+    vector<Line> diagonal;
+    if(monotonePolygon.size() == numPoints && !fullPolygon) {fullPolygon = true;continue;}
+    triangulateMonotonePolygon(monotonePolygon, diagonal);
+
+    diagonals.pu(diagonal);
   }
 }
 
@@ -120,6 +240,7 @@ int main()
     cin >> x >> y;
 
     PolygonPoint *p = new PolygonPoint(x,y);
+    if(enableRotation) p->rotate();
     points.push_back(p);
   }
 
@@ -127,13 +248,9 @@ int main()
   {
     points[i]->setNextPointer(points[(i+1) % numPoints]);
     points[i]->setPrevPointer(points[(i-1+numPoints)%numPoints]);
-  }
-
-  for(int i=0;i<numPoints;i++)
-  {
     points[i]->setType();
+    // t(points[i]->to_string());
   }
-
 
   sort(points.begin(),points.end(),[](PolygonPoint* a, PolygonPoint* b) { return *a < *b; });
   reverse(points.begin(), points.end());
@@ -142,13 +259,13 @@ int main()
   map<PolygonPoint, Line> inverseHelper;
 
   generateInverseHelper(points,inverseHelper);
-  // printInverseHelper(inverseHelper);
+  printInverseHelper(inverseHelper);
 
   map<pair<pair<ld,ld>, pair<ld,ld> > , PolygonPoint*> helper;
   for(auto pointer : points)
   {
     PolygonPoint point = *pointer;
-    cerr << "Processing point: " << point.to_string() << endl;
+    // cerr << "Processing point: " << point.to_string() << endl;
     // Updating the sweep line
     sweepY = point.getY();
 
@@ -161,7 +278,6 @@ int main()
     else if(point.isEndPoint())
     {
       Line prevLine = point.getPrevLine();
-      t(helper.count(prevLine.getPair()));
       if(helper[prevLine.getPair()]->isMergePoint())
       {
         // Draw Diagonal from point to helper[prevLine.getPair()]
@@ -231,11 +347,6 @@ int main()
     // }
   }
 
-  // for(auto line : diagonals)
-  // {
-  //   cout << line.to_string() << endl;
-  // }
-
   // Print helper lines
   // for(auto it : helper)
   // {
@@ -247,22 +358,52 @@ int main()
   vector<Line> sides,allLines;
   for(int i=0;i<numPoints;i++) sides.push_back(points[i]->getNextLine());
 
-  cout << diagonalPoints.size() + numPoints << endl;
+  // cout << diagonalPoints.size() + numPoints << endl;
+  // cout << 2*numPoints - 3 << endl;
+  // printOutputForPlot();
+  cout << sides.size() << endl;
   for(auto line : sides)
   {
+
     allLines.pu(line);
+    if(enableRotation) line.deRotate();
     auto pair = line.getPair();
     cout << pair.fi.fi << " " << pair.fi.se << " " << pair.se.fi << " " << pair.se.se << endl;
   }
 
+  cout << diagonalPoints.size() << endl;
   for(auto line : diagonalPoints)
   {
-    allLines.pu(Line((line.fi)->getPoint(),(line.se)->getPoint() ));
-    auto pair1 = (line.fi)->getPair(), pair2 = (line.se)->getPair();
-    cout << pair1.fi << " " << pair1.se << " " << pair2.fi << " " << pair2.se << endl;
+    Line tempLine = Line((line.fi)->getPoint(),(line.se)->getPoint());
+    allLines.pu(tempLine);
+
+    if(enableRotation) tempLine.deRotate();
+    auto pair = tempLine.getPair();
+    cout << pair.fi.fi << " " << pair.fi.se << " " << pair.se.fi << " " << pair.se.se << endl;
   }
 
-  vector<vector<Point> > polygons;
+  vector<vector<PolygonPoint*> > polygons;
   assignLinesToPolygons(allLines,polygons);
+
+  vector<vector<Line> > monotoneDiagonals;
+  triangulateMonotonePolygons(polygons,monotoneDiagonals,numPoints);
+
+
+  int monotoneDiagonalSize = 0;
+  for(auto diagonals : monotoneDiagonals) if(diagonals.size()) monotoneDiagonalSize++;
+
+  cout << monotoneDiagonalSize << endl;
+  for(auto diagonals : monotoneDiagonals)
+  {
+    if(diagonals.size() == 0) continue;
+    cout << diagonals.size() << endl;
+    for(auto line : diagonals)
+    {
+      if(enableRotation) line.deRotate();
+
+      auto pair = line.getPair();
+      cout << pair.fi.fi << " " << pair.fi.se << " " << pair.se.fi << " " << pair.se.se << endl;
+    }
+  }
   return 0;
 }

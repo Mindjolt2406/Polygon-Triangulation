@@ -9,6 +9,7 @@
 #define EPS 1e-6
 
 extern ld sweepY;
+// ld defaultAngle;
 
 typedef struct Line
 {
@@ -54,13 +55,15 @@ typedef struct Line
 
   // }
   // Problem
-  bool on_left(Point p) 
+  bool on_left(Point p, bool inclusive = false) 
   {
+    if(inclusive) return p.cross(u,v) >= 0;
     return p.cross(u,v) > 0;
   }
 
-  bool on_right(Point p) 
+  bool on_right(Point p, bool inclusive = false) 
   {
+    if(inclusive) return p.cross(u,v) <= 0;
     return p.cross(u,v) < 0;
   }
 
@@ -92,6 +95,12 @@ typedef struct Line
   bool operator ==(const Line& line) const
   {
     return (this->u == line.u) && (this->v == line.v);
+  }
+
+  void deRotate(ld angle = -defaultAngle)
+  {
+    u.rotate(angle);
+    v.rotate(angle);
   }
 
   std::pair< std::pair<ld,ld>, std::pair<ld,ld> > getPair()

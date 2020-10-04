@@ -4,11 +4,12 @@
 #endif
 using namespace std;
 
+// ld defaultAngle;
+
 typedef struct PolygonPoint
 {
   ld x,y;
-  // Line nextLine;
-  // Line prevLine;
+
   PolygonPoint *nextPoint, *prevPoint;
   Point point;
   bool isMerge = false, isSplit = false, isEnd = false, isStart = false, isRegular = false;
@@ -22,12 +23,8 @@ typedef struct PolygonPoint
   }
 
   PolygonPoint(ld x, ld y) : x(x), y(y), point(x,y){}
+  PolygonPoint(Point point): x(point.getX()), y(point.getY()), point(point) {}
   PolygonPoint(const PolygonPoint &p): nextPoint(p.nextPoint), prevPoint(p.prevPoint), isMerge(p.isMerge), isSplit(p.isSplit), isEnd(p.isEnd), isStart(p.isStart), isRegular(p.isRegular), leftEdge(p.leftEdge), x(p.x), y(p.y), point(p.x,p.y){}
-
-  // void equate(PolygonPoint &point)
-  // {
-  //   x = point.getX(), y = point.getY(), nextPoint = point.getNextPointer(), prevPoint = point.getPrevPointer(), isMerge = point.isMerge, isStart = point.isStart, isRegular = point.isRegular, 
-  // }
 
 
   PolygonPoint* getPrevPointer() {return prevPoint;}
@@ -138,6 +135,13 @@ typedef struct PolygonPoint
   bool operator !=(const PolygonPoint p) const
   {
     return !(x == p.x && y == p.y);
+  }
+
+  void rotate(ld angle = defaultAngle)
+  {
+    point.rotate(angle);
+    x = point.getX();
+    y = point.getY();
   }
 
   std::pair<ld,ld> getPair()

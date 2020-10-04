@@ -144,10 +144,32 @@ pair<pair<ld,ld> , pair<ld,ld> >  HalfEdge::getEdgePair()
   return mp(getOrigin()->getPair(), getTwinEdge()->getOrigin()->getPair());
 }
 
+void convertShapeToPolygon(vector<vector<Point> > &shape, vector<vector<PolygonPoint*> > &polygons)
+{
+  for(auto points : shape)
+  {
+    vector<PolygonPoint*> polygon;
+    for(auto point : points)
+    {
+      PolygonPoint* pointer = new PolygonPoint(point);
+      polygon.push_back(pointer);
+    }
 
-void assignLinesToPolygons(vector<Line> &lines, vector<vector<Point> > &polygons)
+    int numPoints = polygon.size();
+    for(int i=0;i<numPoints;i++)
+    {
+      polygon[i]->setNextPointer(polygon[(i+1) % numPoints]);
+      polygon[i]->setPrevPointer(polygon[(i-1+numPoints)%numPoints]);
+    }
+    polygons.pu(polygon);
+  }
+}
+
+void assignLinesToPolygons(vector<Line> &lines, vector<vector<PolygonPoint*> > &polygons)
 {
   map<pair<ld,ld>, Vertex* > vertexMap;
+  vector<vector<Point> > shape;
+
   for(auto line : lines)
   {
     auto pairU = line.getU().getPair();
@@ -203,17 +225,10 @@ void assignLinesToPolygons(vector<Line> &lines, vector<vector<Point> > &polygons
         for(auto it : points) cerr << it.getPair() << " ";
         cerr << endl;
         cerr << endl;
-        polygons.pu(points);
+        shape.pu(points);
       }
     }
   }
 
-  // for(auto polygon)
-
-  // int faceID = 1;
-  // vector<Face*> faces;
-  // HalfEdge* halfEdge = ((*vertexMap.begin()).second)->getHalfEdge();
-  // HalfEdge* tempEdge = halfEdge;
-
-
+  convertShapeToPolygon(shape,polygons);
 } 

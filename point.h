@@ -1,4 +1,5 @@
 #define ld long double
+#define ll long long int
 #define t1(x)                cerr<<#x<<" : "<<x<<endl
 #define t2(x, y)             cerr<<#x<<" : "<<x<<" "<<#y<<" : "<<y<<endl
 #define t3(x, y, z)          cerr<<#x<<" : " <<x<<" "<<#y<<" : "<<y<<" "<<#z<<" : "<<z<<endl
@@ -8,6 +9,8 @@
 #define GET_MACRO(_1,_2,_3,_4,_5,_6,NAME,...) NAME
 #define t(...) GET_MACRO(__VA_ARGS__,t6,t5, t4, t3, t2, t1)(__VA_ARGS__)
 #define _ cerr<<"here"<<endl;
+
+extern const ld defaultAngle = 0.01;
 
 typedef struct Point
 {
@@ -67,6 +70,22 @@ typedef struct Point
     return false;
   }
 
+  void rotate(ld angle = defaultAngle)
+  {
+    ld s = sin(angle);
+    ld c = cos(angle);
+
+    // rotate point
+    ld xnew = x * c - y * s;
+    ld ynew = x * s + y * c;
+
+    x = xnew;
+    y = ynew;
+
+    x = ((ll)(1e6*x))/1e6;
+    y = ((ll)(1e6*y))/1e6;
+  }
+
   std::pair<ld,ld> getPair()
   {
     return std::make_pair(x,y);
@@ -74,7 +93,10 @@ typedef struct Point
 
   std::string to_string()
   {
-    return "( " + std::to_string(x) + ", " + std::to_string(y) + " )";
+    // this->rotate(-defaultAngle);
+    std::string tempString =  "( " + std::to_string(x) + ", " + std::to_string(y) + " )";
+    // this->rotate(defaultAngle);
+    return tempString;
   }
 
 } Point;
