@@ -1,6 +1,7 @@
 import pygame,sys,os
 import time
 from pygame.locals import *
+from random import *
 pygame.init()
 DISPLAYSURF = pygame.display.set_mode((1000,800))
 pygame.display.set_caption("Polygon Triangulation")
@@ -99,6 +100,39 @@ def inputPoints():
 
     pygame.display.update()
 
+def displayFullOutput(partition, diagonals):
+
+  for line in partition:
+    pygame.draw.line(DISPLAYSURF, BLACK, (line[0],line[1]), (line[2],line[3]), 2)
+    pygame.display.update()
+
+  d = pygame.color.THECOLORS
+  for polygonDiagonals in diagonals:
+    colour = choice(list(d.values()))
+    colour3 = colour[:3]
+    for line in polygonDiagonals:
+      pygame.draw.line(DISPLAYSURF, colour3, (line[0],line[1]), (line[2],line[3]), 2)
+      pygame.display.update()
+
+def displayOutputOneLine(partition, diagonals):
+  d = pygame.color.THECOLORS
+  index = 0
+
+  for line in partition:
+    pygame.draw.line(DISPLAYSURF, BLACK, (line[0],line[1]), (line[2],line[3]), 2)
+    pygame.display.update()
+    index += 1
+    yield(index)
+  
+  for polygonDiagonals in diagonals:
+    colour = choice(list(d.values()))
+    colour3 = colour[:3]
+    for line in polygonDiagonals:
+      pygame.draw.line(DISPLAYSURF, colour3, (line[0],line[1]), (line[2],line[3]), 2)
+      pygame.display.update()
+      index += 1
+      yield(index)
+
 def renderOptionsChoose():
   pygame.draw.line(DISPLAYSURF, BLACK, (815,400), (985,400), 2)
   pygame.draw.line(DISPLAYSURF, BLACK, (815,400), (815,450), 2)
@@ -117,9 +151,9 @@ def renderOptionsChoose():
   DISPLAYSURF.blit(mcolour2,(800,500))
   pygame.display.update()
 
-def renderOptionSteps():
+def renderOptionSteps(partition, diagonals, counter):
   myfont = pygame.font.SysFont('Comic Sans MS', 20)
-  pygame.draw.rect(DISPLAYSURF,WHITE,pygame.Rect(815,400,170,50)) 
+  pygame.draw.rect(DISPLAYSURF,WHITE,pygame.Rect(815,400,172,52)) 
   pygame.draw.rect(DISPLAYSURF,WHITE,pygame.Rect(815,500,170,50)) 
 
   pygame.draw.line(DISPLAYSURF, BLACK, (815,500), (985,500), 2)
@@ -130,40 +164,52 @@ def renderOptionSteps():
   DISPLAYSURF.blit(mcolour2,(800,500))
   pygame.display.update()
 
-# def clickYeildCondition()
-# {
-#   while(True):
-#     int index = 0
-#     for event in pygame.event.get():
-#       if event.type==QUIT:
-#         pygame.quit()
-#         sys.exit()
-#       elif event.type == MOUSEBUTTONDOWN:
-#         if(mouseX >= 802 and 500 <= mouseY <= 550):
-#           renderOptionSteps()
-#           print "Steps",mouseX, mouseY
-# }
+  generator = displayOutputOneLine(partition, diagonals)
+  print("here in generator", counter)
+  while(True):
+    for event in pygame.event.get():
+        mouseX,mouseY = pygame.mouse.get_pos()
+        if event.type==QUIT:
+          pygame.quit()
+          sys.exit()
+        elif event.type == MOUSEBUTTONDOWN:
+          if(mouseX >= 802 and 500 <= mouseY <= 550):
+            try:
+              index = next(generator)
+              if(index == counter):
+                pygame.draw.rect(DISPLAYSURF,WHITE,pygame.Rect(815,500,170,50)) 
+                pygame.draw.line(DISPLAYSURF, BLACK, (815,500), (985,500), 2)
+                pygame.draw.line(DISPLAYSURF, BLACK, (815,500), (815,550), 2)
+                pygame.draw.line(DISPLAYSURF, BLACK, (985,550), (815,550), 2)
+                pygame.draw.line(DISPLAYSURF, BLACK, (985,550), (985,500), 2)
+                mcolour2 = myfont.render("    Restart", True, BLACK)
+                DISPLAYSURF.blit(mcolour2,(800,500))
+                pygame.display.update()
+            except: 
+              return
+
 
 def processOutput():
-  print("here")
   file = open("formattedOutput.txt","r")
   l = file.readlines()
   file.close()
 
-  allLines = []
+  montoneDiagonals, monotonePartition = [],[]
   index = 0
   numSides = int(l[0])
   index+=1
+  counter = 0
 
   for i in range(numSides):
-    allLines.append([round(float(x)) for x in l[index].split()])
+    # allLines.append([round(float(x)) for x in l[index].split()])
     index+= 1
 
   numMonotoneSides = int(l[index])
   index += 1
 
   for i in range(numMonotoneSides):
-    allLines.append([round(float(x)) for x in l[index].split()])
+    counter += 1
+    monotonePartition.append([round(float(x)) for x in l[index].split()])
     index+= 1
 
   numTriangles = int(l[index])
@@ -172,17 +218,20 @@ def processOutput():
   for i in range(numTriangles):
     numTriangleSides = int(l[index])
     index += 1
+    polygonDiagonals = []
     for j in range(numTriangleSides):
-      allLines.append([round(float(x)) for x in l[index].split()])
+      counter += 1
+      polygonDiagonals.append([round(float(x)) for x in l[index].split()])
       index+= 1
+    montoneDiagonals.append(polygonDiagonals)
   
-  for line in allLines:
-     pygame.draw.line(DISPLAYSURF, BLACK, (line[0],line[1]), (line[2],line[3]), 2)
-     pygame.display.update()
+  return monotonePartition, montoneDiagonals, counter
 
 def chooseOption():
   renderOptionsChoose()
+  partition, diagonals, counter = processOutput()
   processPrinted = False
+  partial = False
   while(True):
     mouseX,mouseY = pygame.mouse.get_pos()
     for event in pygame.event.get():
@@ -193,13 +242,12 @@ def chooseOption():
         if(processPrinted and mouseX >= 802):
           return
         elif(mouseX >= 802 and 400<=mouseY<=450):
-          print "Full",mouseX, mouseY
-          processOutput()
+          displayFullOutput(partition, diagonals)
           processPrinted = True
           # return
         elif(mouseX >= 802 and 500 <= mouseY <= 550):
-          renderOptionSteps()
-          print "Steps",mouseX, mouseY
+          renderOptionSteps(partition, diagonals,counter)
+          return
 
 inputDone = False
 while(True):

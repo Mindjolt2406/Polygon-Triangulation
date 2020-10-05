@@ -72,6 +72,7 @@ typedef struct Point
 
   void rotate(ld angle = defaultAngle)
   {
+    if(angle > 0) y *= -1;
     ld s = sin(angle);
     ld c = cos(angle);
 
@@ -84,6 +85,7 @@ typedef struct Point
 
     x = ((ll)(1e6*x))/1e6;
     y = ((ll)(1e6*y))/1e6;
+    if(angle < 0) y*= -1;
   }
 
   std::pair<ld,ld> getPair()
